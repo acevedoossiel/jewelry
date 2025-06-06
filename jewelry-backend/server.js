@@ -2,6 +2,8 @@ import express from 'express';
 import mongoose from 'mongoose';
 import userRoutes from './routes/user.routes.js';
 import cors from 'cors';
+import jewelryRoutes from './routes/jewelry.routes.js';
+
 
 const app = express();
 const PORT = 3000;
@@ -12,6 +14,7 @@ app.use(express.json());
 
 // Rutas
 app.use('/api/users', userRoutes);
+app.use('/api/jewelry', jewelryRoutes);
 
 // Conexión a MongoDB
 mongoose.connect('mongodb://127.0.0.1:27017/jewelryApp')

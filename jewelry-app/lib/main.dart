@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:jewelry_app/providers/jewelry_providers.dart';
-import 'package:jewelry_app/screens/favorites_screen.dart';
-import 'package:jewelry_app/screens/home_screen.dart';
 import 'package:jewelry_app/providers/cart_provider.dart';
 import 'package:jewelry_app/providers/auth_provider.dart';
+import 'package:jewelry_app/screens/admin_dashboard.dart';
+import 'package:jewelry_app/screens/jewelry_store.dart';
 
 void main() {
   runApp(const MyApp());
@@ -68,61 +68,8 @@ class MyApp extends StatelessWidget {
         routes: {
           '/login': (_) => const LoginScreen(),
           '/home': (_) => const JewelryStore(),
+          '/initial': (_) => const InitialScreen(),
         },
-      ),
-    );
-  }
-}
-
-class JewelryStore extends StatelessWidget {
-  const JewelryStore({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    final authProvider = Provider.of<AuthProvider>(context);
-    final isAdmin = authProvider.user?.role == 'admin';
-
-    return DefaultTabController(
-      length: 2,
-      child: Scaffold(
-        appBar: AppBar(
-          backgroundColor: colors.primary,
-          title: const Text(
-            "Joyería LunA",
-            style: TextStyle(color: Colors.white),
-          ),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.logout),
-              tooltip: 'Cerrar sesión',
-              onPressed: () {
-                Provider.of<AuthProvider>(context, listen: false).logout();
-                Navigator.pushReplacementNamed(context, '/login');
-              },
-            ),
-          ],
-          bottom: const TabBar(
-            indicatorColor: Colors.white,
-            labelColor: Colors.white,
-            unselectedLabelColor: Colors.grey,
-            tabs: <Widget>[
-              Tab(icon: Icon(Icons.home), text: 'Inicio'),
-              Tab(icon: Icon(Icons.favorite), text: 'Favoritos'),
-            ],
-          ),
-        ),
-        body: const TabBarView(children: [HomeScreen(), FavoritesScreen()]),
-        floatingActionButton:
-            isAdmin
-                ? FloatingActionButton(
-                  onPressed: () {
-                    // Navegar o mostrar modal para agregar producto
-                  },
-                  child: const Icon(Icons.add),
-                  backgroundColor: Colors.pinkAccent,
-                )
-                : null,
       ),
     );
   }
@@ -147,7 +94,14 @@ class _InitialScreenState extends State<InitialScreen> {
     await authProvider.loadUserSession();
 
     if (authProvider.user != null) {
-      Navigator.pushReplacementNamed(context, '/home');
+      if (authProvider.user!.role == 'admin') {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const AdminDashboard()),
+        );
+      } else {
+        Navigator.pushReplacementNamed(context, '/home');
+      }
     } else {
       Navigator.pushReplacementNamed(context, '/login');
     }
@@ -182,9 +136,10 @@ class _LoginScreenState extends State<LoginScreen> {
     );
 
     if (success) {
-      // Ahora sí, sesión guardada correctamente
-      // ignore: use_build_context_synchronously
-      Navigator.pushReplacementNamed(context, '/home');
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const InitialScreen()),
+      );
     } else {
       setState(() {
         errorMessage = 'Credenciales inválidas';
