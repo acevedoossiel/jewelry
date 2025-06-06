@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../models/jewelry_model.dart';
@@ -22,7 +23,8 @@ class _AdminDashboardState extends State<AdminDashboard> {
   }
 
   Future<void> fetchJewelry() async {
-    final url = Uri.parse('http://10.0.2.2:3000/api/jewelry');
+    final baseUrl = dotenv.env['API_BASE_URL']!;
+    final url = Uri.parse('$baseUrl/api/jewelry');
 
     try {
       final response = await http.get(url);
@@ -43,6 +45,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
 
   @override
   Widget build(BuildContext context) {
+    // ignore: unused_local_variable
     final colors = Theme.of(context).colorScheme;
 
     return Scaffold(
