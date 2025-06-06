@@ -43,6 +43,9 @@ class FavoriteJewelryCard extends StatelessWidget {
     final colors = Theme.of(context).colorScheme;
     final size = MediaQuery.of(context).size;
 
+    final imageUrl =
+        (jewelry.mediaLinks.isNotEmpty) ? jewelry.mediaLinks.first : null;
+
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -71,13 +74,16 @@ class FavoriteJewelryCard extends StatelessWidget {
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(20),
-                  child: Image.network(
-                    jewelry.imageLink,
-                    fit: BoxFit.cover,
-                    errorBuilder:
-                        (context, error, stackTrace) =>
-                            const Icon(Icons.image_not_supported),
-                  ),
+                  child:
+                      imageUrl != null
+                          ? Image.network(
+                            imageUrl,
+                            fit: BoxFit.cover,
+                            errorBuilder:
+                                (_, __, ___) =>
+                                    const Icon(Icons.image_not_supported),
+                          )
+                          : const Icon(Icons.image_not_supported),
                 ),
               ),
               const SizedBox(width: 16),

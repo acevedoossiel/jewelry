@@ -2,50 +2,47 @@ class JewelryModel {
   int id;
   String name;
   String material;
-  String imageLink;
+  List<String> mediaLinks; // 👈 CAMBIADO: ahora es una lista
   List<String> details;
   double price;
-  int quantity; // 👈 NUEVO CAMPO
+  int quantity;
 
-  // Constructor
   JewelryModel({
     required this.id,
     required this.name,
     required this.material,
-    required this.imageLink,
+    required this.mediaLinks, // 👈 CAMBIO
     required this.details,
     required this.price,
-    this.quantity = 1, // 👈 Valor por defecto
+    this.quantity = 1,
   });
 
-  // Factory para crear desde JSON
   factory JewelryModel.fromJSON(Map<String, dynamic> json) {
     return JewelryModel(
       id: json['id'],
       name: json['name'],
       material: json['material'],
-      imageLink: json['imageLink'],
+      mediaLinks: List<String>.from(json['mediaLinks']), // 👈 CAMBIO
       details: List<String>.from(json['details']),
       price: (json['price'] as num).toDouble(),
-      quantity: json['quantity'] ?? 1, 
+      quantity: json['quantity'] ?? 1,
     );
   }
 
-  // Conversor a JSON
   Map<String, dynamic> toJSON() {
     return {
       'id': id,
       'name': name,
       'material': material,
-      'imageLink': imageLink,
+      'mediaLinks': mediaLinks, // 👈 CAMBIO
       'details': details,
       'price': price,
-      'quantity': quantity, 
+      'quantity': quantity,
     };
   }
 
   @override
   String toString() {
-    return 'Jewelry(id: $id, name: $name, material: $material, imageLink: $imageLink, price: $price, quantity: $quantity, details: $details)';
+    return 'Jewelry(id: $id, name: $name, material: $material, mediaLinks: $mediaLinks, price: $price, quantity: $quantity, details: $details)';
   }
 }

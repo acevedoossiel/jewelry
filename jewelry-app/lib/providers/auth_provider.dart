@@ -11,7 +11,7 @@ class AuthProvider with ChangeNotifier {
 
   // Login
   Future<bool> login(String email, String password) async {
-    final url = Uri.parse('http://localhost:3000/api/users/login');
+    final url = Uri.parse('http://10.0.2.2:3000/api/users/login');
 
     final response = await http.post(
       url,

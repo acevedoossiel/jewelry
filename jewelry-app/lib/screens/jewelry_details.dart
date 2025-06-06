@@ -55,8 +55,9 @@ class _JewelryDetailsState extends State<JewelryDetails> {
             },
             icon: AnimatedSwitcher(
               duration: const Duration(milliseconds: 300),
-              transitionBuilder: (child, animation) =>
-                  ScaleTransition(scale: animation, child: child),
+              transitionBuilder:
+                  (child, animation) =>
+                      ScaleTransition(scale: animation, child: child),
               child: Icon(
                 isFavorite ? Icons.favorite : Icons.favorite_border,
                 color: Colors.white,
@@ -80,18 +81,39 @@ class _JewelryDetailsState extends State<JewelryDetails> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: Image.network(
-                widget.jewelryData.imageLink,
-                height: size.height * 0.3,
-                width: double.infinity,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) => const Icon(
-                  Icons.image_not_supported,
-                  size: 100,
-                  color: Colors.grey,
-                ),
+            // ✅ Carrusel con altura específica
+            SizedBox(
+              height: size.height * 0.3,
+              width: double.infinity,
+              child: PageView.builder(
+                itemCount: widget.jewelryData.mediaLinks.length,
+                itemBuilder: (context, index) {
+                  final link = widget.jewelryData.mediaLinks[index];
+
+                  if (link.endsWith('.mp4') || link.contains('video')) {
+                    return Center(
+                      child: Text(
+                        '🎥 Video: $link',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    );
+                  }
+
+                  return Image.network(
+                    link,
+                    fit: BoxFit.cover,
+                    errorBuilder:
+                        (context, error, stackTrace) => const Icon(
+                          Icons.image_not_supported,
+                          size: 100,
+                          color: Colors.grey,
+                        ),
+                  );
+                },
               ),
             ),
             const SizedBox(height: 20),
@@ -109,7 +131,7 @@ class _JewelryDetailsState extends State<JewelryDetails> {
             const SizedBox(height: 5),
             Text(
               "Precio: \$${widget.jewelryData.price.toStringAsFixed(2)}",
-              style: TextStyle(fontWeight: FontWeight.w600),
+              style: const TextStyle(fontWeight: FontWeight.w600),
             ),
             Container(
               margin: const EdgeInsets.symmetric(vertical: 10),
@@ -129,8 +151,10 @@ class _JewelryDetailsState extends State<JewelryDetails> {
             const SizedBox(height: 16),
             ElevatedButton.icon(
               onPressed: () {
-                Provider.of<CartProvider>(context, listen: false)
-                    .addToCart(widget.jewelryData);
+                Provider.of<CartProvider>(
+                  context,
+                  listen: false,
+                ).addToCart(widget.jewelryData);
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text("Producto añadido al carrito")),
                 );
@@ -141,7 +165,8 @@ class _JewelryDetailsState extends State<JewelryDetails> {
                 backgroundColor: colors.primary,
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10)),
+                  borderRadius: BorderRadius.circular(10),
+                ),
               ),
             ),
           ],

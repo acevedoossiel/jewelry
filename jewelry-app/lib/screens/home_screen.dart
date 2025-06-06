@@ -7,69 +7,77 @@ import 'package:jewelry_app/screens/formulario_joya.dart';
 import 'package:jewelry_app/providers/cart_provider.dart';
 import 'package:jewelry_app/screens/cart_screen.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
   @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final provider = Provider.of<JewelryProviders>(context, listen: false);
+      provider.fetchJewelry();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final jewelryProvider = Provider.of<JewelryProviders>(context, listen: false);
-
-    // Cargar joyas solo una vez (solo si la lista está vacía)
-    if (jewelryProvider.items.isEmpty) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        jewelryProvider.fetchJewelry();
-      });
-    }
-
     final colors = Theme.of(context).colorScheme;
 
     return Scaffold(
-appBar: AppBar(
-  backgroundColor: colors.primary,
-  title: const Text('Joyería LunA'),
-  actions: [
-    Consumer<CartProvider>(
-      builder: (context, cartProvider, _) {
-        return Stack(
-          alignment: Alignment.center,
-          children: [
-            IconButton(
-              icon: const Icon(Icons.shopping_cart),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const CartScreen()),
-                );
-              },
-            ),
-            if (cartProvider.items.isNotEmpty)
-              Positioned(
-                right: 6,
-                top: 6,
-                child: Container(
-                  padding: const EdgeInsets.all(5),
-                  decoration: BoxDecoration(
-                    color: Colors.red,
-                    borderRadius: BorderRadius.circular(12),
+      appBar: AppBar(
+        backgroundColor: colors.primary,
+        title: const Text('Joyería LunA'),
+        actions: [
+          Consumer<CartProvider>(
+            builder: (context, cartProvider, _) {
+              return Stack(
+                alignment: Alignment.center,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.shopping_cart),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const CartScreen()),
+                      );
+                    },
                   ),
-                  constraints: const BoxConstraints(minWidth: 22, minHeight: 22),
-                  child: Text(
-                    '${cartProvider.items.length}',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
+                  if (cartProvider.items.isNotEmpty)
+                    Positioned(
+                      right: 6,
+                      top: 6,
+                      child: Container(
+                        padding: const EdgeInsets.all(5),
+                        decoration: BoxDecoration(
+                          color: Colors.red,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        constraints: const BoxConstraints(
+                          minWidth: 22,
+                          minHeight: 22,
+                        ),
+                        child: Text(
+                          '${cartProvider.items.length}',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
                     ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              ),
-          ],
-        );
-      },
-    ),
-  ],
-),
+                ],
+              );
+            },
+          ),
+        ],
+      ),
       body: Consumer<JewelryProviders>(
         builder: (context, provider, child) {
           if (provider.isLoading) {
@@ -104,21 +112,22 @@ appBar: AppBar(
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (_) => Padding(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom,
-        ),
-        child: const SizedBox(
-          height: 500,
-          child: FormularioJoya(),
-        ),
-      ),
+      builder:
+          (_) => Padding(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).viewInsets.bottom,
+            ),
+            child: const SizedBox(height: 500, child: FormularioJoya()),
+          ),
     );
   }
 
   // Widget de tarjeta para cada joya
   Widget _jewelryCard(BuildContext context, JewelryModel item) {
     final colors = Theme.of(context).colorScheme;
+
+    final imageUrl =
+        (item.mediaLinks.isNotEmpty) ? item.mediaLinks.first : null;
 
     return GestureDetector(
       onTap: () {
@@ -133,7 +142,9 @@ appBar: AppBar(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         child: Card(
           elevation: 3,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           child: Row(
             children: [
               Container(
@@ -145,12 +156,15 @@ appBar: AppBar(
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(12),
-                  child: Image.network(
-                    item.imageLink,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) =>
-                        const Icon(Icons.broken_image),
-                  ),
+                  child:
+                      imageUrl != null
+                          ? Image.network(
+                            imageUrl,
+                            fit: BoxFit.cover,
+                            errorBuilder:
+                                (_, __, ___) => const Icon(Icons.broken_image),
+                          )
+                          : const Icon(Icons.broken_image),
                 ),
               ),
               const SizedBox(width: 16),
@@ -173,7 +187,10 @@ appBar: AppBar(
                       const SizedBox(height: 6),
                       Text(
                         "Material: ${item.material}",
-                        style: const TextStyle(fontSize: 12, fontFamily: 'QuickSand'),
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontFamily: 'QuickSand',
+                        ),
                       ),
                     ],
                   ),
