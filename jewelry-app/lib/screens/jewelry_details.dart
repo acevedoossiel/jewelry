@@ -4,6 +4,7 @@ import 'package:jewelry_app/models/jewelry_model.dart';
 import 'package:jewelry_app/providers/jewelry_providers.dart';
 import 'package:jewelry_app/providers/cart_provider.dart';
 import 'package:jewelry_app/screens/cart_screen.dart';
+import 'package:video_player/video_player.dart';
 
 class JewelryDetails extends StatefulWidget {
   final JewelryModel jewelryData;
@@ -15,7 +16,17 @@ class JewelryDetails extends StatefulWidget {
 }
 
 class _JewelryDetailsState extends State<JewelryDetails> {
+  Map<int, VideoPlayerController> _videoControllers = {};
   bool isFavorite = false;
+  double _currentVolume = 1.0;
+
+  @override
+  void dispose() {
+    for (var controller in _videoControllers.values) {
+      controller.dispose();
+    }
+    super.dispose();
+  }
 
   @override
   void didChangeDependencies() {
@@ -91,18 +102,112 @@ class _JewelryDetailsState extends State<JewelryDetails> {
                   final link = widget.jewelryData.mediaLinks[index];
 
                   if (link.endsWith('.mp4') || link.contains('video')) {
-                    return Center(
-                      child: Text(
-                        '🎥 Video: $link',
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          color: Colors.grey,
-                        ),
+                    // Si no existe un controlador, lo creamos con manejo de error y timeout
+                    if (!_videoControllers.containsKey(index)) {
+                      final controller = VideoPlayerController.networkUrl(
+                        Uri.parse(link),
+                      );
+                      _videoControllers[index] = controller;
+
+                      controller
+                          .initialize()
+                          .timeout(
+                            const Duration(seconds: 5),
+                            onTimeout: () {
+                              debugPrint(
+                                '⏱️ Tiempo de espera superado al cargar video $link',
+                              );
+                              controller.dispose();
+                              _videoControllers.remove(index);
+                              setState(() {});
+                            },
+                          )
+                          .then((_) {
+                            setState(() {});
+                          })
+                          .catchError((error) {
+                            debugPrint(
+                              '❌ Error al inicializar el video $link: $error',
+                            );
+                            controller.dispose();
+                            _videoControllers.remove(index);
+                            setState(() {});
+                          });
+                    }
+
+                    final controller = _videoControllers[index];
+
+                    // Si el controlador aún no está disponible o fue eliminado
+                    if (controller == null || !controller.value.isInitialized) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+
+                    return GestureDetector(
+                      onTap: () {
+                        if (controller.value.isPlaying) {
+                          controller.pause();
+                        } else {
+                          controller.play();
+                        }
+                        setState(() {});
+                      },
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          AspectRatio(
+                            aspectRatio: controller.value.aspectRatio,
+                            child: VideoPlayer(controller),
+                          ),
+                          if (!controller.value.isPlaying)
+                            const Icon(
+                              Icons.play_circle_fill,
+                              size: 64,
+                              color: Colors.white,
+                            ),
+
+                          // ✅ Botones de volumen
+                          Positioned(
+                            bottom: 10,
+                            right: 10,
+                            child: Column(
+                              children: [
+                                IconButton(
+                                  icon: const Icon(
+                                    Icons.volume_up,
+                                    color: Color.fromARGB(255, 0, 0, 0),
+                                  ),
+                                  onPressed: () {
+                                    setState(() {
+                                      _currentVolume += 0.1;
+                                      if (_currentVolume > 1.0)
+                                        _currentVolume = 1.0;
+                                      controller.setVolume(_currentVolume);
+                                    });
+                                  },
+                                ),
+                                IconButton(
+                                  icon: const Icon(
+                                    Icons.volume_down,
+                                    color: Color.fromARGB(255, 0, 0, 0),
+                                  ),
+                                  onPressed: () {
+                                    setState(() {
+                                      _currentVolume -= 0.1;
+                                      if (_currentVolume < 0.0)
+                                        _currentVolume = 0.0;
+                                      controller.setVolume(_currentVolume);
+                                    });
+                                  },
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
                     );
                   }
 
+                  // Si es imagen
                   return Image.network(
                     link,
                     fit: BoxFit.cover,
@@ -116,6 +221,7 @@ class _JewelryDetailsState extends State<JewelryDetails> {
                 },
               ),
             ),
+
             const SizedBox(height: 20),
             Text(
               widget.jewelryData.name,

@@ -5,8 +5,10 @@ import 'package:jewelry_app/providers/cart_provider.dart';
 import 'package:jewelry_app/providers/auth_provider.dart';
 import 'package:jewelry_app/screens/admin_dashboard.dart';
 import 'package:jewelry_app/screens/jewelry_store.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-void main() {
+void main() async {
+  await dotenv.load(fileName: ".env");
   runApp(const MyApp());
 }
 

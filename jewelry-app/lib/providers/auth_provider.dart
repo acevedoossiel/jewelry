@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user_model.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class AuthProvider with ChangeNotifier {
   UserModel? _user;
@@ -11,7 +12,10 @@ class AuthProvider with ChangeNotifier {
 
   // Login
   Future<bool> login(String email, String password) async {
-    final url = Uri.parse('http://10.0.2.2:3000/api/users/login');
+    // final url = Uri.parse('http://10.0.2.2:3000/api/users/login');
+    // final url = Uri.parse('http://192.168.0.22:3000/api/users/login');
+    final baseUrl = dotenv.env['API_BASE_URL']!;
+    final url = Uri.parse('$baseUrl/api/users/login');
 
     final response = await http.post(
       url,
