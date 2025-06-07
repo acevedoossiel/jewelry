@@ -16,7 +16,7 @@ const JewelrySchema = new mongoose.Schema({
     required: true,
   },
   mediaLinks: {
-    type: [String], // 👈 Ahora es un arreglo de strings
+    type: [String],
     required: true,
   },
   details: {
@@ -30,6 +30,10 @@ const JewelrySchema = new mongoose.Schema({
   quantity: {
     type: Number,
     default: 1,
+  },
+  isFavorite: {
+    type: Boolean,
+    default: false, // 👈 Por defecto no es favorito
   },
 });
 

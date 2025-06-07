@@ -77,3 +77,28 @@ export const deleteJewelry = async (req, res) => {
     res.status(500).json({ message: 'Error al eliminar el producto', error });
   }
 };
+
+
+export const toggleFavorite = async (req, res) => {
+  try {
+    const item = await Jewelry.findById(req.params.id);
+    if (!item) return res.status(404).json({ message: 'Producto no encontrado' });
+
+    item.isFavorite = !item.isFavorite;
+    await item.save();
+
+    res.json({ message: 'Estado actualizado', isFavorite: item.isFavorite });
+  } catch (error) {
+    res.status(500).json({ message: 'Error al cambiar favorito', error });
+  }
+};
+
+
+export const uploadMedia = (req, res) => {
+  try {
+    const fileUrl = '/uploads/${req.file.filename}';
+    res.status(201).json({ url: fileUrl });
+  } catch (error) {
+    res.status(500).json({ message: 'Error al subir archivo', error });
+  }
+};

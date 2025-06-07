@@ -95,4 +95,20 @@ class JewelryProviders extends ChangeNotifier {
       return false;
     }
   }
+
+  Future<bool> updateJewelry(JewelryModel joya) async {
+    final baseUrl = dotenv.env['API_BASE_URL']!;
+    final url = Uri.parse('$baseUrl/api/jewelry/${joya.id}');
+    try {
+      final res = await http.put(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(joya.toJSON()),
+      );
+      return res.statusCode == 200;
+    } catch (e) {
+      print("Error al actualizar joya: $e");
+      return false;
+    }
+  }
 }

@@ -1,10 +1,18 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:http/http.dart' as http;
 import 'package:jewelry_app/models/jewelry_model.dart';
 import 'package:jewelry_app/providers/jewelry_providers.dart';
+import 'package:path/path.dart' as path;
+import 'package:provider/provider.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class FormularioJoya extends StatefulWidget {
-  const FormularioJoya({super.key});
+  final JewelryModel? joya; // ✅ permite editar
+
+  const FormularioJoya({super.key, this.joya});
 
   @override
   State<FormularioJoya> createState() => _FormularioJoyaState();
@@ -12,14 +20,32 @@ class FormularioJoya extends StatefulWidget {
 
 class _FormularioJoyaState extends State<FormularioJoya> {
   final formKey = GlobalKey<FormState>();
-
-  final TextEditingController _name = TextEditingController();
-  final TextEditingController _material = TextEditingController();
-  final TextEditingController _price = TextEditingController();
-  final TextEditingController _details = TextEditingController();
-
-  // Lista de URLs para imágenes o videos
+  final _name = TextEditingController();
+  final _material = TextEditingController();
+  final _price = TextEditingController();
+  final _details = TextEditingController();
   List<TextEditingController> _mediaLinkControllers = [TextEditingController()];
+  final ImagePicker _picker = ImagePicker();
+
+  bool get isEditing => widget.joya != null;
+
+  @override
+  void initState() {
+    super.initState();
+
+    if (isEditing) {
+      final joya = widget.joya!;
+      _name.text = joya.name;
+      _material.text = joya.material;
+      _price.text = joya.price.toString();
+      _details.text = joya.details.join(', ');
+
+      _mediaLinkControllers =
+          joya.mediaLinks
+              .map((link) => TextEditingController(text: link))
+              .toList();
+    }
+  }
 
   @override
   void dispose() {
@@ -33,13 +59,47 @@ class _FormularioJoyaState extends State<FormularioJoya> {
     super.dispose();
   }
 
+  Future<void> _pickAndUploadFile(
+    ImageSource source, {
+    required bool isImage,
+  }) async {
+    final picked =
+        isImage
+            ? await _picker.pickImage(source: source)
+            : await _picker.pickVideo(source: source);
+
+    if (picked != null) {
+      final file = File(picked.path);
+      final baseUrl = dotenv.env['API_BASE_URL']!;
+      final uri = Uri.parse('$baseUrl/api/jewelry/upload');
+
+      final request = http.MultipartRequest('POST', uri)
+        ..files.add(await http.MultipartFile.fromPath('file', file.path));
+
+      final response = await request.send();
+
+      if (response.statusCode == 201) {
+        final body = await response.stream.bytesToString();
+        final url = RegExp(r'"url":"([^"]+)"').firstMatch(body)?.group(1);
+        if (url != null) {
+          setState(() {
+            _mediaLinkControllers.add(
+              TextEditingController(text: '$baseUrl$url'),
+            );
+          });
+        }
+      } else {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text("Error al subir archivo")));
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
-    final jewelryProvider = Provider.of<JewelryProviders>(
-      context,
-      listen: false,
-    );
+    final provider = Provider.of<JewelryProviders>(context, listen: false);
 
     return SingleChildScrollView(
       padding: EdgeInsets.only(
@@ -54,34 +114,25 @@ class _FormularioJoyaState extends State<FormularioJoya> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              "Nueva Joya",
+              isEditing ? "Editar Joya" : "Nueva Joya",
               style: TextStyle(fontSize: 20, color: colors.primary),
             ),
             const SizedBox(height: 10),
             _buildTextField(_name, "Nombre de la joya", _requiredValidator),
             const SizedBox(height: 10),
-            _buildTextField(
-              _material,
-              "Material (ej. Oro, Plata)",
-              _requiredValidator,
-            ),
+            _buildTextField(_material, "Material", _requiredValidator),
             const SizedBox(height: 10),
-
-            // Campos dinámicos de URLs
-            Text(
-              "URLs de imagen/video:",
-              style: TextStyle(color: colors.primary),
-            ),
+            Text("Imágenes/Videos:", style: TextStyle(color: colors.primary)),
             const SizedBox(height: 6),
             ..._mediaLinkControllers.asMap().entries.map((entry) {
-              final index = entry.key;
+              final i = entry.key;
               final controller = entry.value;
               return Row(
                 children: [
                   Expanded(
                     child: _buildTextField(
                       controller,
-                      "URL ${index + 1}",
+                      "URL ${i + 1}",
                       _requiredValidator,
                     ),
                   ),
@@ -91,27 +142,36 @@ class _FormularioJoyaState extends State<FormularioJoya> {
                       icon: const Icon(Icons.remove_circle, color: Colors.red),
                       onPressed: () {
                         setState(() {
-                          _mediaLinkControllers.removeAt(index).dispose();
+                          _mediaLinkControllers.removeAt(i).dispose();
                         });
                       },
                     ),
                 ],
               );
             }).toList(),
-            TextButton.icon(
-              onPressed: () {
-                setState(() {
-                  _mediaLinkControllers.add(TextEditingController());
-                });
-              },
-              icon: const Icon(Icons.add),
-              label: const Text("Agregar otra URL"),
+            Row(
+              children: [
+                const SizedBox(width: 8),
+                TextButton.icon(
+                  onPressed: () {
+                    _pickAndUploadFile(ImageSource.gallery, isImage: true);
+                  },
+                  icon: const Icon(Icons.image),
+                  label: const Text("Subir imagen"),
+                ),
+                TextButton.icon(
+                  onPressed: () {
+                    _pickAndUploadFile(ImageSource.gallery, isImage: false);
+                  },
+                  icon: const Icon(Icons.videocam),
+                  label: const Text("Subir video"),
+                ),
+              ],
             ),
-
             const SizedBox(height: 10),
             _buildTextField(
               _price,
-              "Precio (ej. 1499.99)",
+              "Precio",
               _priceValidator,
               keyboardType: TextInputType.number,
             ),
@@ -131,9 +191,11 @@ class _FormularioJoyaState extends State<FormularioJoya> {
                         _mediaLinkControllers
                             .map((c) => c.text.trim())
                             .toList();
-
-                    final newJoya = JewelryModel(
-                      id: jewelryProvider.items.length + 1,
+                    final joya = JewelryModel(
+                      id:
+                          isEditing
+                              ? widget.joya!.id
+                              : provider.items.length + 1,
                       name: _name.text.trim(),
                       material: _material.text.trim(),
                       mediaLinks: mediaLinks,
@@ -141,10 +203,12 @@ class _FormularioJoyaState extends State<FormularioJoya> {
                       price: double.parse(_price.text.trim()),
                     );
 
-                    final success = await jewelryProvider.saveJewelry(newJoya);
-                    if (success) {
-                      Navigator.pop(context, true);
-                    }
+                    final success =
+                        isEditing
+                            ? await provider.updateJewelry(joya)
+                            : await provider.saveJewelry(joya);
+
+                    if (success) Navigator.pop(context, true);
                   }
                 },
                 style: ElevatedButton.styleFrom(
@@ -153,9 +217,9 @@ class _FormularioJoyaState extends State<FormularioJoya> {
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
-                child: const Text(
-                  "Guardar joya",
-                  style: TextStyle(color: Colors.white),
+                child: Text(
+                  isEditing ? "Actualizar joya" : "Guardar joya",
+                  style: const TextStyle(color: Colors.white),
                 ),
               ),
             ),
@@ -164,6 +228,8 @@ class _FormularioJoyaState extends State<FormularioJoya> {
       ),
     );
   }
+
+  // Funciones auxiliares
 
   String? _requiredValidator(String? value) {
     if (value == null || value.trim().isEmpty) return "Campo obligatorio";

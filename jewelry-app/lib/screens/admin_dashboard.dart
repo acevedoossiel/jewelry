@@ -43,9 +43,23 @@ class _AdminDashboardState extends State<AdminDashboard> {
     }
   }
 
+  Future<void> deleteJewelry(String id) async {
+    final baseUrl = dotenv.env['API_BASE_URL']!;
+    final url = Uri.parse('$baseUrl/api/jewelry/$id');
+    try {
+      final response = await http.delete(url);
+      if (response.statusCode == 200) {
+        fetchJewelry();
+      } else {
+        print('Error al eliminar joya: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error en la solicitud DELETE: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    // ignore: unused_local_variable
     final colors = Theme.of(context).colorScheme;
 
     return Scaffold(
@@ -91,15 +105,24 @@ class _AdminDashboardState extends State<AdminDashboard> {
                       children: [
                         IconButton(
                           icon: const Icon(Icons.edit, color: Colors.blue),
-                          onPressed: () {
-                            // TODO: Implementar edición
+                          onPressed: () async {
+                            final result = await showModalBottomSheet<bool>(
+                              context: context,
+                              isScrollControlled: true,
+                              shape: const RoundedRectangleBorder(
+                                borderRadius: BorderRadius.vertical(
+                                  top: Radius.circular(20),
+                                ),
+                              ),
+                              builder: (context) => FormularioJoya(joya: item),
+                            );
+
+                            if (result == true) fetchJewelry();
                           },
                         ),
                         IconButton(
                           icon: const Icon(Icons.delete, color: Colors.red),
-                          onPressed: () {
-                            // TODO: Implementar eliminación
-                          },
+                          onPressed: () => deleteJewelry(item.id.toString()),
                         ),
                       ],
                     ),
@@ -117,9 +140,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
             builder: (context) => const FormularioJoya(),
           );
 
-          if (result == true) {
-            fetchJewelry();
-          }
+          if (result == true) fetchJewelry();
         },
         backgroundColor: Colors.pinkAccent,
         child: const Icon(Icons.add),
