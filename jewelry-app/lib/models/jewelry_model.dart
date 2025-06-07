@@ -1,6 +1,5 @@
 class JewelryModel {
-  String? mongoId; // 👈 Nuevo: ID real de Mongo (_id)
-  int id;
+  String? id; // Ahora este será el _id de Mongo
   String name;
   String material;
   List<String> mediaLinks;
@@ -10,8 +9,7 @@ class JewelryModel {
   bool isFavorite;
 
   JewelryModel({
-    this.mongoId, // 👈 Nuevo
-    required this.id,
+    this.id, // opcional, porque al crear no lo tienes aún
     required this.name,
     required this.material,
     required this.mediaLinks,
@@ -23,8 +21,7 @@ class JewelryModel {
 
   factory JewelryModel.fromJSON(Map<String, dynamic> json) {
     return JewelryModel(
-      mongoId: json['_id'], // 👈 Extraído del backend
-      id: json['id'],
+      id: json['_id'], // leer el ObjectId de Mongo
       name: json['name'],
       material: json['material'],
       mediaLinks: List<String>.from(json['mediaLinks']),
@@ -37,19 +34,18 @@ class JewelryModel {
 
   Map<String, dynamic> toJSON() {
     return {
-      // No incluimos _id aquí porque no es necesario al enviar JSON
-      'id': id,
       'name': name,
       'material': material,
       'mediaLinks': mediaLinks,
       'details': details,
       'price': price,
       'quantity': quantity,
+      // ❌ No se incluye `id` al mandar datos
     };
   }
 
   @override
   String toString() {
-    return 'Jewelry(_id: $mongoId, id: $id, name: $name, material: $material, mediaLinks: $mediaLinks, price: $price, quantity: $quantity, details: $details, isFavorite: $isFavorite)';
+    return 'Jewelry(id: $id, name: $name, material: $material, mediaLinks: $mediaLinks, price: $price, quantity: $quantity, details: $details, isFavorite: $isFavorite)';
   }
 }

@@ -60,8 +60,6 @@ class _AdminDashboardState extends State<AdminDashboard> {
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-
     return Scaffold(
       appBar: AppBar(
         title: const Text("Admin Dashboard"),
@@ -122,7 +120,13 @@ class _AdminDashboardState extends State<AdminDashboard> {
                         ),
                         IconButton(
                           icon: const Icon(Icons.delete, color: Colors.red),
-                          onPressed: () => deleteJewelry(item.id.toString()),
+                          onPressed: () {
+                            if (item.id != null) {
+                              deleteJewelry(item.id!);
+                            } else {
+                              print("Error: El ID de la joya es null");
+                            }
+                          },
                         ),
                       ],
                     ),

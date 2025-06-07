@@ -1,11 +1,6 @@
 import mongoose from 'mongoose';
 
 const JewelrySchema = new mongoose.Schema({
-  id: {
-    type: Number,
-    required: true,
-    unique: true,
-  },
   name: {
     type: String,
     required: true,
@@ -33,7 +28,7 @@ const JewelrySchema = new mongoose.Schema({
   },
   isFavorite: {
     type: Boolean,
-    default: false, // 👈 Por defecto no es favorito
+    default: false,
   },
 });
 

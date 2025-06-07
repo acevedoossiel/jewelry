@@ -3,7 +3,7 @@ import Jewelry from '../models/jewelry.model.js';
 // Crear producto
 export const createJewelry = async (req, res) => {
   try {
-    const { name, material, mediaLinks, details, price, quantity, id } = req.body;
+    const { name, material, mediaLinks, details, price, quantity } = req.body;
 
     // Validación básica
     if (!name || !material || !mediaLinks || !Array.isArray(mediaLinks) || mediaLinks.length === 0 || !details || !price) {
@@ -11,7 +11,6 @@ export const createJewelry = async (req, res) => {
     }
 
     const newJewelry = new Jewelry({
-      id,
       name,
       material,
       mediaLinks,
@@ -23,6 +22,7 @@ export const createJewelry = async (req, res) => {
     await newJewelry.save();
     res.status(201).json(newJewelry);
   } catch (error) {
+    console.error('Error al crear el producto:', error);
     res.status(500).json({ message: 'Error al crear el producto', error });
   }
 };
