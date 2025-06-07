@@ -5,7 +5,6 @@ import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 import 'package:jewelry_app/models/jewelry_model.dart';
 import 'package:jewelry_app/providers/jewelry_providers.dart';
-import 'package:path/path.dart' as path;
 import 'package:provider/provider.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 

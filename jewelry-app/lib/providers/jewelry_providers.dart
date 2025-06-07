@@ -111,4 +111,26 @@ class JewelryProviders extends ChangeNotifier {
       return false;
     }
   }
+
+  Future<void> toggleFavoriteOnBackend(JewelryModel jewelry) async {
+    final baseUrl = dotenv.env['API_BASE_URL']!;
+    final url = Uri.parse('$baseUrl/api/jewelry/${jewelry.id}/favorite');
+
+    try {
+      final res = await http.patch(url);
+
+      if (res.statusCode == 200) {
+        // Buscar el producto y actualizar su estado localmente
+        final index = _jewelrys.indexWhere((j) => j.id == jewelry.id);
+        if (index != -1) {
+          _jewelrys[index].isFavorite = !_jewelrys[index].isFavorite;
+        }
+        notifyListeners();
+      } else {
+        print("❌ Error al cambiar favorito: ${res.statusCode}");
+      }
+    } catch (e) {
+      print("❌ Excepción en toggleFavoriteOnBackend: $e");
+    }
+  }
 }

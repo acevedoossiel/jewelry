@@ -13,7 +13,8 @@ class FavoritesScreen extends StatelessWidget {
       backgroundColor: Colors.white,
       body: Consumer<JewelryProviders>(
         builder: (context, jewelryProviders, child) {
-          final favoriteItems = jewelryProviders.favoriteJewelry;
+          final favoriteItems =
+              jewelryProviders.items.where((j) => j.isFavorite).toList();
 
           if (jewelryProviders.isLoading) {
             return const Center(child: CircularProgressIndicator());
