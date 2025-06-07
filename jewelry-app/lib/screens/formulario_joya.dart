@@ -24,7 +24,9 @@ class _FormularioJoyaState extends State<FormularioJoya> {
   final _material = TextEditingController();
   final _price = TextEditingController();
   final _details = TextEditingController();
-  List<TextEditingController> _mediaLinkControllers = [TextEditingController()];
+  // List<TextEditingController> _mediaLinkControllers = [TextEditingController()];
+  List<TextEditingController> _mediaLinkControllers = [];
+
   final ImagePicker _picker = ImagePicker();
 
   bool get isEditing => widget.joya != null;
@@ -190,12 +192,10 @@ class _FormularioJoyaState extends State<FormularioJoya> {
                     final mediaLinks =
                         _mediaLinkControllers
                             .map((c) => c.text.trim())
+                            .where((url) => url.isNotEmpty)
                             .toList();
                     final joya = JewelryModel(
-                      id:
-                          isEditing
-                              ? widget.joya!.id
-                              : provider.items.length + 1,
+                      id: isEditing ? widget.joya!.id : null,
                       name: _name.text.trim(),
                       material: _material.text.trim(),
                       mediaLinks: mediaLinks,
