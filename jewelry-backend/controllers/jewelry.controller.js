@@ -96,7 +96,7 @@ export const toggleFavorite = async (req, res) => {
 
 export const uploadMedia = (req, res) => {
   try {
-    const fileUrl = '/uploads/${req.file.filename}';
+    const fileUrl = `/uploads/${req.file.filename}`;
     res.status(201).json({ url: fileUrl });
   } catch (error) {
     res.status(500).json({ message: 'Error al subir archivo', error });
