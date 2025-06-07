@@ -17,7 +17,7 @@ class JewelryDetails extends StatefulWidget {
 
 class _JewelryDetailsState extends State<JewelryDetails> {
   Map<int, VideoPlayerController> _videoControllers = {};
-  bool isFavorite = false;
+  // bool isFavorite = false;
   double _currentVolume = 1.0;
 
   @override
@@ -28,12 +28,12 @@ class _JewelryDetailsState extends State<JewelryDetails> {
     super.dispose();
   }
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final provider = Provider.of<JewelryProviders>(context, listen: false);
-    isFavorite = provider.favoriteJewelry.contains(widget.jewelryData);
-  }
+  // @override
+  // void didChangeDependencies() {
+  //   super.didChangeDependencies();
+  //   final provider = Provider.of<JewelryProviders>(context, listen: false);
+  //   isFavorite = provider.favoriteJewelry.contains(widget.jewelryData);
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -58,11 +58,9 @@ class _JewelryDetailsState extends State<JewelryDetails> {
               await Provider.of<JewelryProviders>(
                 context,
                 listen: false,
-              ).toggleFavoriteStatus(widget.jewelryData);
+              ).toggleFavoriteOnBackend(widget.jewelryData);
 
-              setState(() {
-                isFavorite = !isFavorite;
-              });
+              setState(() {}); // Para refrescar la UI
             },
             icon: AnimatedSwitcher(
               duration: const Duration(milliseconds: 300),
@@ -70,12 +68,15 @@ class _JewelryDetailsState extends State<JewelryDetails> {
                   (child, animation) =>
                       ScaleTransition(scale: animation, child: child),
               child: Icon(
-                isFavorite ? Icons.favorite : Icons.favorite_border,
+                widget.jewelryData.isFavorite
+                    ? Icons.favorite
+                    : Icons.favorite_border,
                 color: Colors.white,
-                key: ValueKey<bool>(isFavorite),
+                key: ValueKey<bool>(widget.jewelryData.isFavorite),
               ),
             ),
           ),
+
           IconButton(
             icon: const Icon(Icons.shopping_cart),
             onPressed: () {
